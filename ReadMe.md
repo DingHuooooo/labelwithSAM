@@ -48,3 +48,4 @@
    - in app, show the original image, and use the transfer matrix to transfer the points from images position to the embeddings position.
    - get the output mask and transfer it back to the original image size.
    - save the mask.
+   - etc.

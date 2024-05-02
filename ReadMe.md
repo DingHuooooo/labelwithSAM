@@ -41,4 +41,10 @@
 
 <img src="static/images/example.gif" alt="Example">
 
-
+# **Next Improvements**:
+1. Images size should be flexible.
+   - resize the image in embeddings_generator.py to get the embeddings.
+   - generate the transfer matrix
+   - in app, show the original image, and use the transfer matrix to transfer the points from images position to the embeddings position.
+   - get the output mask and transfer it back to the original image size.
+   - save the mask.

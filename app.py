@@ -46,21 +46,24 @@ def search_image_paths():
 
 @app.route('/selectImage', methods=['POST'])
 def select_image():
-    global image_path, embedding_path
+    global image_path, embedding_path, points
     predictor.reset_predictor()
     data = request.get_json()
     image_path = data.get('imagePath')
     mask_path = image_path.replace('image.png', 'mask.png').replace('images', 'masks')
     embedding_path = image_path.replace('image.png', 'embedding.pth').replace('images', 'embeddings')
+    points_path = image_path.replace('image.png', 'points.npy').replace('images', 'points')
+    points = np.load(points_path, allow_pickle=True)
     if os.path.exists(embedding_path):
-        predictor.set_embedding(embedding_path)
+        predictor.set_embedding(embedding_path, image_path)
     else:
         predictor.set_image(image_path)
     return jsonify({"message": "Success receive image path", "mask_path": mask_path if os.path.exists(mask_path) else None, "embendding_generated": "true"}), 200
 
-@app.route('/addPoint', methods=['POST'])
+@app.route('/getPoint', methods=['POST'])
 def add_point():
     global points
+    points = []
     points_data = request.json.get('data')
     x_coordinates = [point['x'] for point in points_data]
     y_coordinates = [point['y'] for point in points_data]
@@ -109,7 +112,6 @@ def decode_data(data) -> np.ndarray:
     image = np.frombuffer(image_bytes.read(), dtype=np.uint8)
     img = cv2.imdecode(image, cv2.IMREAD_UNCHANGED)  # Decode from buffer using cv2.IMREAD_UNCHANGED
     img = img[:, :, :3]  # Remove the alpha channel
-    img = cv2.resize(img, (1024, 1024))  # Resize the image to 1024x1024
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  # Convert to grayscale
     return img
 

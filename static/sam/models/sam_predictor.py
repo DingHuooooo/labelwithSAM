@@ -24,9 +24,16 @@ class SAM_Predictor():
 
         self.image = None
         self.image_embedding = None
-
         self.input_size = 1024
+        self.input_img_height = 1024
+        self.input_img_width = 1024
 
+    def _preprocess_image(self, image_path) -> np.ndarray:
+        image = cv2.imread(image_path)
+        self.input_img_height, self.input_img_width = image.shape[:2]
+        image = cv2.resize(image, (1024, 1024))
+        return image
+    
     def _get_image_embedding(self):
         assert self.image_embedding is not None, "Current Mode is predicting from embedding, but image embedding is not set"
         return self.image_embedding
@@ -72,23 +79,24 @@ class SAM_Predictor():
             multimask_output=multimask_output,
         )
         # Upscale the masks to the original image resolution
-        masks = self.model.postprocess_masks(low_res_masks, (self.input_size, self.input_size), (self.input_size, self.input_size))
+        masks = self.model.postprocess_masks(low_res_masks, (1024, 1024), (self.input_img_height, self.input_img_width))
 
         if not return_logits:
             masks = masks > self.model.mask_threshold
 
         return masks, iou_predictions, low_res_masks
     
-    def set_image(self, image_path: str, ) -> bool:
-        image = cv2.imread(image_path)
-        assert image.shape == (self.input_size, self.input_size, 3), f"Image shape should be (1024, 1024, 3), but got {image.shape}"
+    def set_image(self, image_path: str) -> bool:
+        image = self._preprocess_image(image_path)
+        assert image.shape == (self.input_size, self.input_size, 3), f"Image shape should be (xxx, xxx, 3), but got {image.shape}"
         assert image.dtype == np.uint8, f"Image dtype should be np.uint8, but got {image.dtype}"
         self.image = image
         self.image_embedding = self._get_image_embedding_from_image()
         os.makedirs(os.path.dirname(image_path.replace('image.png', 'embedding.pth').replace('images', 'embeddings')), exist_ok=True)
         torch.save(self.image_embedding, image_path.replace('image.png', 'embedding.pth').replace('images', 'embeddings'))
 
-    def set_embedding(self, image_embedding_path: str) -> bool:
+    def set_embedding(self, image_embedding_path: str, image_path: str) -> bool:
+        image = self._preprocess_image(image_path)
         image_embedding = torch.load(image_embedding_path, map_location=self.device)
         assert image_embedding.shape == (1, 256, 64, 64), f"Image embedding shape should be (1, 256, 64, 64), but got {image_embedding.shape}"
         assert image_embedding.dtype == torch.float32, f"Image embedding dtype should be torch.Tensor, but got {image_embedding.dtype}"
@@ -106,7 +114,10 @@ class SAM_Predictor():
         coords_torch, labels_torch, box_torch, mask_input_torch = None, None, None, None
 
         if point_coords is not None:
-            assert point_labels is not None, "point_labels must be supplied if point_coords is supplied."  
+            assert point_labels is not None, "point_labels must be supplied if point_coords is supplied." 
+            for coord in point_coords:
+                coord[0] = coord[0] / self.input_img_width * 1024
+                coord[1] = coord[1] / self.input_img_height * 1024
             coords_torch = torch.as_tensor(point_coords, dtype=torch.float, device=self.device)
             labels_torch = torch.as_tensor(point_labels, dtype=torch.int, device=self.device)
             coords_torch, labels_torch = coords_torch[None, :, :], labels_torch[None, :]

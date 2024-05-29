@@ -46,14 +46,6 @@
                     <button id="clearMaskButton" @click="clearAllAnnotations" :disabled="blockedByLasso||!imageLoaded">Clear Mask</button>
                     <button id="saveMaskButton" @click="saveCurrentMask" :disabled="blockedByLasso||!imageLoaded">Save Mask</button>
                 </div>
-                <div id="noteContainer">
-                    <p>Notes:</p>
-                    <p>1. Only directories under <span class="underline">data/images/</span> will be listed and only images under <span class="underline">data/images/dir</span> that end with <span class="underline">.png</span> will be listed.</p>
-                    <p>2. Only images that have corresponding embeddings under <span class="underline">data/embeddings/</span> will be listed.</p>
-                    <p>3. Use <span class="underline">rightClick</span> to quit editing when the cursor is crosshair.</p>
-                    <p>4. The mask is saved under <span class="underline">data/masks</span> when you click the "Save Mask" button.</p>
-                    <p>5. Please use no more than <span class="bold">five</span> points as prompts.</p>
-                </div>
             </div>
         </div>
         <div>
@@ -70,6 +62,15 @@
                     <button type="button" id="nextFileButton" @click="selectNextFile" :disabled="blockedByLasso||noNextFile||!imageLoaded">&#10095;</button>
                 </div>
             </form>            
+        </div>
+        <div id="noteContainer">
+            <p>Notes:</p>
+            <p>1. Only directories and .png images under <span class="underline">data/images/</span> will be listed.</p>
+            <p>2. Images with corresponding embeddings in <span class="underline">data/embeddings/</span> are listed. If adding points yields wierd results, delete the embedding and retry.</p>
+            <p>3. Use <span class="underline">rightClick</span> to exit editing mode.</p>
+            <p>4. Masks are saved to <span class="underline">data/masks</span> upon clicking "Save Mask".</p>
+            <p>5. Limit point prompts to <span class="bold">five</span>.</p>
+
         </div>
     </div>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>

@@ -54,7 +54,6 @@ button:hover {
 #imageCanvasContainer {
     position: relative;
     width: 1024px;
-    height: 1024px;
     margin-left: 100px;
     margin-right: 50px;
 }
@@ -203,7 +202,7 @@ button:hover {
     background-color: #f9f9f9;
     border: 1px solid #ccc;
     border-radius: 5px;
-    width : 650px;
+    width : 1200px;
 }
 #noteContainer p {
     margin: 15px 0;

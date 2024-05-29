@@ -11,14 +11,13 @@ class Predictor():
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.predictor = SAM_Predictor(model_type=self.model_type, device=self.device)
 
-
     def set_image(self, image_path):
         self.image_path = image_path
         self.predictor.set_image(image_path)
 
-    def set_embedding(self, embedding_path):
+    def set_embedding(self, embedding_path, image_path):
         self.embedding_path = embedding_path
-        self.predictor.set_embedding(embedding_path)
+        self.predictor.set_embedding(embedding_path, image_path)
 
     def predict(self, points) -> np.ndarray:
         if points is not None:

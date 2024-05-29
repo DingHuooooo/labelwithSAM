@@ -99,13 +99,11 @@ const app = Vue.createApp({
             const imagePath = `${this.imageBasePath}/${this.selectedDirectory}/${this.selectedFile}`;
             const baseCanvas = document.getElementById('baseImageCanvas');
             const baseCtx = baseCanvas.getContext('2d');
-        
-            // 显示加载中的信息
+
             baseCtx.clearRect(0, 0, baseCanvas.width, baseCanvas.height);
             baseCtx.font = '20px Arial';
             baseCtx.fillText('Corresponding embedding not found. Waiting for generating...', baseCanvas.width / 2 - 350, baseCanvas.height / 2);
-        
-            // 异步请求后端获取图片相关信息
+
             fetch('/selectImage', {
                 method: 'POST',
                 headers: {
@@ -116,16 +114,36 @@ const app = Vue.createApp({
             .then(response => response.json())
             .then(data => {
                 console.log('Response from backend:', data.message);
-                console.log('Mask path:', data.mask_path);
-                console.log('Embedding generated:', data.embendding_generated);
-                if (data.mask_path) {
-                    this.loadMask(data.mask_path);
-                }
+                console.log('Response from backend: Mask path:', data.mask_path);
+        
                 if (data.embendding_generated) {
                     const img = new Image();
-                    img.onload = function () {
+                    img.onload = () => {
+                        const width = img.width;
+                        const height = img.height;
+
+                        const container = document.getElementById('imageCanvasContainer');
+                        const baseCanvas = document.getElementById('baseImageCanvas');
+                        const maskCanvas = document.getElementById('annotationMaskCanvas');
+                        const markCanvas = document.getElementById('annotationMarkCanvas');
+
+                        const controlPanel = document.getElementById('controlPanelContainer');
+                        controlPanel.style.marginLeft = `${width + 50}px`;
+
+                        container.style.width = `${width}px`;
+                        container.style.height = `${height}px`;
+
+                        [baseCanvas, maskCanvas, markCanvas].forEach(canvas => {
+                            canvas.width = width;
+                            canvas.height = height;
+                        });
+                        
                         baseCtx.clearRect(0, 0, baseCanvas.width, baseCanvas.height);
-                        baseCtx.drawImage(img, 0, 0, baseCanvas.width, baseCanvas.height);
+                        baseCtx.drawImage(img, 0, 0, width, height);
+
+                        if (data.mask_path) {
+                            this.loadMask(data.mask_path);
+                        }
                     };
                     img.src = imagePath;
                     this.imageLoaded = true;
@@ -170,14 +188,13 @@ const app = Vue.createApp({
         setPointType(type) {
             this.selectedPointType = type;
             this.isCrossHairActive = true;
-            this.points = [];
             this.clearMarkCanvasListeners();
             this.isPointListenerAdded = true;
             const markCanvas = document.getElementById('annotationMarkCanvas');
-            markCanvas.addEventListener('click', this.addPoint);
+            markCanvas.addEventListener('click', this.pushPoint);
             markCanvas.addEventListener('contextmenu', this.stopAddingPoints);
         },
-        addPoint(event) {
+        pushPoint(event) {
             if (event.button !== 0) {return;}
             const markCanvas = document.getElementById('annotationMarkCanvas');
             const ctx = markCanvas.getContext('2d');
@@ -195,7 +212,7 @@ const app = Vue.createApp({
             this.submitAnnotationPoints();
         },
         submitAnnotationPoints() {
-            fetch('/addPoint', {
+            fetch('/getPoint', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -445,23 +462,12 @@ const app = Vue.createApp({
         //*********************************************************Clear and Save********************************************************//
         initializeCanvasAndMask() {
             this.clearAllAnnotations();
-            fetch('/clearPointandMask', {
-                method: 'Get',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Response from backend:', data.message);
-            })
-            .catch(error => console.error('Error clearing points and mask:', error));
         },
         clearMarkCanvasListeners() {
             const markCanvas = document.getElementById('annotationMarkCanvas');
             if (this.isPointListenerAdded) {
                 console.log('Clearing point listeners');
-                markCanvas.removeEventListener('click', this.addPoint);
+                markCanvas.removeEventListener('click', this.pushPoint);
                 markCanvas.removeEventListener('contextmenu', this.stopAddingPoints);
                 this.isPointListenerAdded = false;
             }
@@ -504,6 +510,17 @@ const app = Vue.createApp({
         clearAllAnnotations() {
             this.resetMarkCanvas();
             this.resetMaskCanvas();
+            fetch('/clearPointandMask', {
+                method: 'Get',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Response from backend:', data.message);
+            })
+            .catch(error => console.error('Error clearing points and mask:', error));
             this.mask_history = [];
             this.canRetrieve = false;
         },

@@ -43,3 +43,6 @@
 
 <img src="static/images/example.gif" alt="Example">
 
+# **ToDos**:
+1. Considering that jpg images take up less storage space compared to png images, adding support for jpg images.
+2. If there is an image without embedding, direct load the image and use this tool to make the mask manually.

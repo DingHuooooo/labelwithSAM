@@ -49,3 +49,5 @@
    - This can be realized by a pop-up window to ask to generate embedding or not.
    - If not, use the blank embedding but don't copy it, also don't save the points.
    - If yes, generate the embedding.
+2. **Mask color adjustment**
+    - The mask color is too red, increase the transparency, and the image should be lighter.

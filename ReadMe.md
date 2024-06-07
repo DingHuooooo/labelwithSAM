@@ -44,5 +44,8 @@
 <img src="static/images/example.gif" alt="Example">
 
 # **ToDos**:
-1. Considering that jpg images take up less storage space compared to png images, adding support for jpg images.
-2. If there is an image without embedding, direct load the image and use this tool to make the mask manually.
+1. **Image without embedding**
+   - If there is an image without embedding, direct load the image and use this tool to make the mask manually.
+   - This can be realized by a pop-up window to ask to generate embedding or not.
+   - If not, use the blank embedding but don't copy it, also don't save the points.
+   - If yes, generate the embedding.

@@ -92,8 +92,12 @@ class SAM_Predictor():
         assert image.dtype == np.uint8, f"Image dtype should be np.uint8, but got {image.dtype}"
         self.image = image
         self.image_embedding = self._get_image_embedding_from_image()
-        os.makedirs(os.path.dirname(image_path.replace('image.png', 'embedding.pth').replace('images', 'embeddings')), exist_ok=True)
-        torch.save(self.image_embedding, image_path.replace('image.png', 'embedding.pth').replace('images', 'embeddings'))
+        if image_path.endswith('.png'):
+            os.makedirs(os.path.dirname(image_path.replace('image.png', 'embedding.pth').replace('images', 'embeddings')), exist_ok=True)
+            torch.save(self.image_embedding, image_path.replace('image.png', 'embedding.pth').replace('images', 'embeddings'))
+        else:
+            os.makedirs(os.path.dirname(image_path.replace('image.jpg', 'embedding.pth').replace('images', 'embeddings')), exist_ok=True)
+            torch.save(self.image_embedding, image_path.replace('image.jpg', 'embedding.pth').replace('images', 'embeddings'))
 
     def set_embedding(self, image_embedding_path: str, image_path: str) -> bool:
         image = self._preprocess_image(image_path)

@@ -40,7 +40,9 @@ def search_image_paths():
     dir_path = request.args.get('dir', '')
     full_path = os.path.join('./data/images', dir_path)
     # image_paths = [f for f in os.listdir(full_path) if f.endswith('.png') and os.path.exists(os.path.join(full_path, f).replace('image.png', 'embedding.pth').replace('images', 'embeddings'))]
-    image_paths = [f for f in os.listdir(full_path) if f.endswith('.png')]
+    # image_paths = [f for f in os.listdir(full_path) if f.endswith('.png')]
+    # jpg and png
+    image_paths = [f for f in os.listdir(full_path) if f.endswith('.png') or f.endswith('.jpg')]
     image_paths = natsorted(image_paths)
     return jsonify({'imagePaths': image_paths})
 
@@ -50,14 +52,26 @@ def select_image():
     predictor.reset_predictor()
     data = request.get_json()
     image_path = data.get('imagePath')
-    mask_path = image_path.replace('image.png', 'mask.png').replace('images', 'masks')
-    embedding_path = image_path.replace('image.png', 'embedding.pth').replace('images', 'embeddings')
-    points_path = image_path.replace('image.png', 'points.npy').replace('images', 'points')
-    points = np.load(points_path, allow_pickle=True)
+    if image_path.endswith('.png'):
+        mask_path = image_path.replace('image.png', 'mask.png').replace('images', 'masks')
+        embedding_path = image_path.replace('image.png', 'embedding.pth').replace('images', 'embeddings')
+        points_path = image_path.replace('image.png', 'points.npy').replace('images', 'points')
+    else:
+        # end with jpg
+        mask_path = image_path.replace('image.jpg', 'mask.png').replace('images', 'masks')
+        embedding_path = image_path.replace('image.jpg', 'embedding.pth').replace('images', 'embeddings')
+        points_path = image_path.replace('image.jpg', 'points.npy').replace('images', 'points')
+
+    if os.path.exists(points_path):
+        points = np.load(points_path, allow_pickle=True)
+    else:
+        points = []
+
     if os.path.exists(embedding_path):
         predictor.set_embedding(embedding_path, image_path)
     else:
         predictor.set_image(image_path)
+
     return jsonify({"message": "Success receive image path", "mask_path": mask_path if os.path.exists(mask_path) else None, "embendding_generated": "true"}), 200
 
 @app.route('/getPoint', methods=['POST'])
@@ -100,11 +114,17 @@ def save_mask():
     _, binary_img = cv2.threshold(img, 2, 1, cv2.THRESH_BINARY)
     os.makedirs(f'{os.path.join(os.path.dirname(image_path))}'.replace('images', 'masks'), exist_ok=True)
     os.makedirs(f'{os.path.join(os.path.dirname(image_path))}'.replace('images', 'points'), exist_ok=True)
-    mask_path = f'{os.path.join(os.path.dirname(image_path),os.path.basename(image_path))}'.replace('image.png', 'mask.png').replace('images', 'masks')
-    points_path = f'{os.path.join(os.path.dirname(image_path),os.path.basename(image_path))}'.replace('image.png', 'points.npy').replace('images', 'points')
+    if image_path.endswith('.png'):
+        mask_path = f'{os.path.join(os.path.dirname(image_path),os.path.basename(image_path))}'.replace('image.png', 'mask.png').replace('images', 'masks')
+        points_path = f'{os.path.join(os.path.dirname(image_path),os.path.basename(image_path))}'.replace('image.png', 'points.npy').replace('images', 'points')
+    else:
+        # end with jpg
+        mask_path = f'{os.path.join(os.path.dirname(image_path),os.path.basename(image_path))}'.replace('image.jpg', 'mask.png').replace('images', 'masks')
+        points_path = f'{os.path.join(os.path.dirname(image_path),os.path.basename(image_path))}'.replace('image.jpg', 'points.npy').replace('images', 'points')
     cv2.imwrite(mask_path, binary_img * 255)
     np.save(points_path, points)
-    return jsonify({'message': 'Success save mask', 'mask_path': image_path.replace('image.png', 'mask.png').replace('images', 'masks')})
+    # return jsonify({'message': 'Success save mask', 'mask_path': image_path.replace('image.png', 'mask.png').replace('images', 'masks')})
+    return jsonify({'message': 'Success save mask', 'mask_path': mask_path})
 
 def decode_data(data) -> np.ndarray:
     image_data = data.split(",")[1]  # Remove the "data:image/png;base64," part

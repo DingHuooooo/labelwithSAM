@@ -176,7 +176,7 @@ const app = Vue.createApp({
                 }
                 ctx.putImageData(imageData, 0, 0);
                 setTimeout(() => {
-                    alert('Existing Mask loaded!');  // Confirm mask is loaded after processing
+//                    alert('Existing Mask loaded!');  // Confirm mask is loaded after processing
                     this.saveMaskToHistory();
                 }, 5);
             };

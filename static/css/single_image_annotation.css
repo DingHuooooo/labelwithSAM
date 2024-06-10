@@ -160,7 +160,7 @@ button:hover {
     background-color: #a80000;
 }
 #annotationMaskCanvas {
-    opacity: 0.5;
+    opacity: 0.2;
 }
 #brushSizeAdjuster {
     width: 200px;

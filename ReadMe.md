@@ -48,4 +48,7 @@
    - If there is an image without embedding, direct load the image and use this tool to make the mask manually.
    - This can be realized by a pop-up window to ask to generate embedding or not.
 2. **Mask color adjustment**
-    - The mask color is too red, increase the transparency, and the image should be lighter.
+    - The mask color is too red, enable the transparency ajustment.
+3. **Select any dir**
+
+4. **Build a .exe**

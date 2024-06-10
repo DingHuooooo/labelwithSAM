@@ -1,0 +1,62 @@
+/* Styles for index.css */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+#app {
+    background: white;
+    width: calc(400px * 3.14); /* 固定宽度，根据高度计算 */
+    height: 400px; /* 至少高度为 200px */
+    max-width: 2000px;
+    padding: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+h1 {
+    color: #333;
+    font-size: 38px;
+    margin-bottom: 20px;
+}
+
+p {
+    color: #666;
+    font-size: 26px;
+    margin-bottom: 20px;
+}
+
+#button-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center; 
+}
+
+button {
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    margin: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    width: auto; /* 定义按钮的宽度 */
+    height: 80px; /* 定义按钮的高度 */
+    font-size: 24px;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #0056b3;
+}

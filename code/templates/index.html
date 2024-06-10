@@ -1,0 +1,22 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Annotation Tool</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="../static/css/index.css">
+</head>
+<body>
+    <div id="app">
+        <h1>Image Annotation Based on SAM</h1>
+        <p>Annotate all images within a specific folder.<br>The first mode requires embeddings output by ViT-L.</p>
+        <div id="button-container">
+            <button @click="annotateSingle">Annotate images (CPU, ViT-L)</button>
+        </div>
+    </div>
+    <script src="../static/js/index.js"></script>
+    
+</body>
+</html>

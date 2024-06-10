@@ -1,0 +1,210 @@
+body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+}
+canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+select {
+    width: 100%;
+    height: 40px;
+    font-size: 16px;
+    padding: 8px;
+    border: 1px solid #afafaf;
+    border-radius: 4px;
+}
+button {
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    padding: 10px 10px;
+    margin: 0px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 20px;
+    transition: background-color 0.3s ease;
+    width: 200px;
+    height: 70px;
+}
+button:disabled {
+    background-color: #b0b0b0;
+    color: #6d6d6d;
+    cursor: not-allowed;
+    border: 1px solid #afafaf;
+}
+button:hover {
+    background-color: #0056b3;
+}
+.underline {
+    text-decoration: underline;
+}
+.bold {
+    font-weight: bold;
+    font-style: italic;
+}
+#appContainer {
+    display: flex;
+    flex-direction: column;
+}
+#mainImageControlContainer {
+    display: flex; 
+}
+#imageCanvasContainer {
+    position: relative;
+    width: 1024px;
+    margin-left: 100px;
+    margin-right: 50px;
+}
+#controlPanelContainer {
+    display: flex;
+    flex-direction: column;
+    margin-left: 50px;
+    margin-top: 20px;
+}
+#pointControlContainer, #brushControlContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-top: 20px;
+    height: 170px;
+    border: 3px solid #858484;
+}
+#brushControlContainer {
+    height: 350px;
+}
+#pointControlTitle, #brushControlTitle {
+    font-size: 20px;
+    font-weight: bold;
+    margin-left: 20px;
+    margin-top: 20px;
+}
+#brushControlTitle {
+    margin-bottom: 0px;
+}
+#pointButtonContainer, #brushButtonContainer, #maskOperationContainer, #lassoButtonContainer {
+    display: flex;
+    justify-content: center;
+    height: 70px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+#selection-form {
+    display: flex;
+    margin-top: 20px;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    width: 100%;
+}
+#file-selection-container {
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    margin-top: 10px; 
+    width: 100%;
+}
+#prevFileButton, #nextFileButton {
+    margin: 0 5px; 
+}
+#file-select, #dir-select {
+    height: 40pt;
+}
+#prevFileButton, #nextFileButton {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    height: 40pt;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+#prevFileButton:hover, #nextFileButton:hover {
+    background-color: #0056b3;
+}
+
+#prevFileButton:disabled, #nextFileButton:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+#stopPointAddingButton {
+    width: 150px;
+    background-color: #444444;
+}
+#retrieveStepButton {
+    width: 150px;
+    background-color: #093d16;
+}
+#stopPointAddingButton:hover{
+    background-color: #000000;
+}
+#retrieveStepButton:hover {
+    background-color: #196b2c;
+}
+#retrieveStepButton:not(:disabled) {
+    background-color: #00b609; 
+}
+#retrieveStepButton:not(:disabled):hover {
+    background-color: #196b2c; 
+}
+#clearMaskButton, #saveMaskButton {
+    background-color: #ff3434; 
+}
+#clearMaskButton:disabled, #saveMaskButton:disabled {
+    background-color: #f1b0b0;
+}
+#clearMaskButton:hover, #saveMaskButton:hover {
+    background-color: #a80000;
+}
+#annotationMaskCanvas {
+    opacity: 0.2;
+}
+#brushSizeAdjuster {
+    width: 200px;
+    margin-top: 0px;
+    margin-left: 0px;
+}
+#brushSizeExampleContainer {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    background-color: #ffffff;
+    border-radius: 5px;
+    height: 80px;
+}
+#brushSizeIndicator {
+    font-size: 20px;
+    width: 200px;
+    margin-right: 20px;
+    margin-left: 20px;
+}
+#circlecontainer {
+    height: 80px;
+    width: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 30px;
+}
+#brushSizeVisualIndicator {
+    width: 20px;
+    height: 20px;
+    background-color: #666;
+    border-radius: 50%;
+    border: 2px solid #000000;
+}
+#noteContainer {
+    padding: 20px;
+    margin-top: 20px;
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width : 1200px;
+}
+#noteContainer p {
+    margin: 15px 0;
+    font-size: 16px;
+}

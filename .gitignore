@@ -1,2 +1,4 @@
 static/sam/sam_ckpt/*
 *.pyc
+*.png
+*.pth

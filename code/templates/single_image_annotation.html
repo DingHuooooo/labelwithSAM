@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../static/css/single_image_annotation.css">
+    <title>Single Image Annotation</title>
+</head>
+<body>
+    <div id="appContainer">
+        <div id="mainImageControlContainer">
+            <div id="imageCanvasContainer">
+                <canvas id="baseImageCanvas" width="1024" height="1024" :style="{ zIndex: 1 }"></canvas>
+                <canvas id="annotationMaskCanvas" width="1024" height="1024" :style="{ zIndex: 2}"></canvas>
+                <canvas id="annotationMarkCanvas" width="1024" height="1024" :style="{ zIndex: 3, cursor: cursorStyle}"></canvas>
+            </div>
+            <div id="controlPanelContainer">
+                <div id="pointControlContainer">
+                    <p id="pointControlTitle">Use Points as Prompts:</p>
+                    <div id="pointButtonContainer">
+                        <button id="addPositivePointButton" @click="setPointType('positive')" :disabled="!canAddPoints">Add Positive Point</button>
+                        <button id="addNegativePointButton" @click="setPointType('negative')" :disabled="!canAddPoints">Add Negative Point</button>
+                        <button id="stopPointAddingButton" @click="moveToModification" :disabled="!canAddPoints">Stop adding Point</button>
+                    </div>
+                </div>
+                <div id="brushControlContainer">
+                    <p id="brushControlTitle">Use Brush or Lasso to modify Mask:</p>
+                    <div id="brushSizeExampleContainer">
+                        <span id="brushSizeIndicator">Brush Size: 10</span>
+                        <input type="range" id="brushSizeAdjuster" min="5" max="20" value="10" @input="adjustBrushSize">
+                        <div id="circlecontainer">
+                            <div id="brushSizeVisualIndicator"></div>
+                        </div>
+                    </div>
+                    <div id="brushButtonContainer">
+                        <button id="addPositiveAreaButton" @click="setBrushType('positive')" :disabled="!canModify||blockedByLasso">Brush Positive Area</button>
+                        <button id="addNegativeAreaButton" @click="setBrushType('negative')" :disabled="!canModify||blockedByLasso">Brush Negative Area</button>
+                    </div>
+                    <div id="lassoButtonContainer">
+                        <button id="positiveLassoButton" @click="setLassoType('positive')" :disabled="!canModify">Laaso Positive Area</button>
+                        <button id="negativeLassoButton" @click="setLassoType('negative')" :disabled="!canModify">Lasso Negative Area</button>
+                        <button id="retrieveStepButton" @click="retrieveStep" :disabled="!(canRetrieve&&!blockedByLasso)">Retrieve a step</button>
+                    </div>
+                </div>                
+                <div id="maskOperationContainer">
+                    <button id="clearMaskButton" @click="clearAllAnnotations" :disabled="blockedByLasso||!imageLoaded">Clear Mask</button>
+                    <button id="saveMaskButton" @click="saveCurrentMask" :disabled="blockedByLasso||!imageLoaded">Save Mask</button>
+                </div>
+            </div>
+        </div>
+        <div>
+            <form id="selection-form">
+                <select id="dir-select" v-model="selectedDirectory" @change="loadFileOptions">
+                    <option disabled value="">Select a directory</option>
+                </select>
+            
+                <div id="file-selection-container">
+                    <select id="file-select" v-model="selectedFile" @change="handleFileSelection">
+                        <option disabled value="" selected>Select a file</option>
+                    </select>
+                    <button type="button" id="prevFileButton" @click="selectPreviousFile" :disabled="blockedByLasso||noPreFile||!imageLoaded">&#10094;</button>
+                    <button type="button" id="nextFileButton" @click="selectNextFile" :disabled="blockedByLasso||noNextFile||!imageLoaded">&#10095;</button>
+                </div>
+            </form>            
+        </div>
+        <div id="noteContainer">
+            <p>Notes:</p>
+            <p>1. Only directories and .png images under <span class="underline">data/images/</span> will be listed.</p>
+            <p>2. Images with corresponding embeddings in <span class="underline">data/embeddings/</span> are listed. If adding points yields wierd results, delete the embedding and retry.</p>
+            <p>3. Use <span class="underline">rightClick</span> to exit editing mode.</p>
+            <p>4. Masks are saved to <span class="underline">data/masks</span> upon clicking "Save Mask".</p>
+            <p>5. Limit point prompts to <span class="bold">five</span>.</p>
+
+        </div>
+    </div>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="../static/js/single_image_annotation.js"></script>
+</body>
+</html>

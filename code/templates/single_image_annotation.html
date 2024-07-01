@@ -15,6 +15,13 @@
                 <canvas id="annotationMarkCanvas" width="1024" height="1024" :style="{ zIndex: 3, cursor: cursorStyle}"></canvas>
             </div>
             <div id="controlPanelContainer">
+                <div id="workplaceControlContainer">
+                    <p id="WorkplaceControlTitle">Workplace setting:</p>
+                    <div id="opacityExampleContainer">
+                        <span id="opacityIndicator">Opacity: 0.2</span>
+                        <input type="range" id="opacityAdjuster" min="10" max="90" value="20" @input="adjustOpacity">
+                    </div>
+                </div>
                 <div id="pointControlContainer">
                     <p id="pointControlTitle">Use Points as Prompts:</p>
                     <div id="pointButtonContainer">

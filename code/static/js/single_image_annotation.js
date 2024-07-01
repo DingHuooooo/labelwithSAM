@@ -19,6 +19,7 @@ const app = Vue.createApp({
             isCrossHairActive: false,
             dragging: false,
             dragIndex: -1,
+            opacity: 0.2,
 
             //***// Drawing States and History //***//
             selectedPointType: 'positive',
@@ -62,21 +63,40 @@ const app = Vue.createApp({
                 .catch(error => console.error('Error fetching directories:', error));
         },
         loadFileOptions() {
-            if (!this.selectedDirectory) return;
+            console.log('Selected directory:', this.selectedDirectory);
             fetch(`/searchImagePaths?dir=${encodeURIComponent(this.selectedDirectory)}`)
                 .then(response => response.json())
                 .then(data => {
+                    const dirSelect = document.getElementById('dir-select');
+                    dirSelect.innerHTML = '<option disabled value="">Select a directory or file</option>';
+
+                    data.subDirs.forEach(subDir => {
+                        const option = document.createElement('option');
+                        option.value = subDir;
+                        option.textContent = subDir;
+                        dirSelect.appendChild(option);
+                    });
+
+                    if (data.clear){
+                        this.selectedDirectory = '';
+                    }
+                            
                     const fileSelect = document.getElementById('file-select');
                     fileSelect.innerHTML = '<option disabled value="" selected>Select a file</option>';
-                    this.imagePaths = data.imagePaths; // 存储路径数组以供导航使用
+                    this.imagePaths = data.imagePaths; 
                     data.imagePaths.forEach(file => {
                         const option = document.createElement('option');
                         option.value = file;
                         option.textContent = file;
                         fileSelect.appendChild(option);
                     });
+                    
+                    // 如果没有子目录也没有文件，可能需要处理这种情况
+                    if (!data.subDirs.length && !data.imagePaths.length) {
+                        alert('No subdirectories or files found');
+                    }
                 })
-                .catch(error => console.error('Error fetching image paths:', error));
+                .catch(error => console.error('Error fetching data:', error));
         },
         selectPreviousFile() {
             const currentIndex = this.imagePaths.indexOf(this.selectedFile);
@@ -184,6 +204,11 @@ const app = Vue.createApp({
             this.canAddPoints = false;
             this.canModify = true;
         },
+        //*************************************************Maskcanvas Logic************************************************************//
+        adjustOpacity(event) {
+            document.getElementById('opacityIndicator').innerText = `Opacity: ${this.opacity}`;
+            document.getElementById('annotationMaskCanvas').style.opacity = this.opacity;
+        },
         //*************************************************Point Logic************************************************************//
         setPointType(type) {
             this.selectedPointType = type;
@@ -276,7 +301,6 @@ const app = Vue.createApp({
             ctx.beginPath();
             ctx.arc(centerX, centerY, this.adjustedBrushSize, 0, 2 * Math.PI, false);
             
-            console.log(this.brushType);
             if (this.brushType == 'negative') {
                 ctx.fillStyle = 'rgba(255,255,255,0.8)';
             }

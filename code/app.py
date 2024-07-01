@@ -57,19 +57,32 @@ def single_image_annotation():
 def search_dirs():
     global proj_dir
     dirs = natsorted([dir for dir in os.listdir(os.path.join(proj_dir, 'data/images'))])
-    return jsonify({'dirs': dirs, 'images_dir': proj_dir})
+    return jsonify({'dirs': dirs})
 
 @app.route('/searchImagePaths', methods=['GET'])
 def search_image_paths():
     global proj_dir
     dir_path = request.args.get('dir', '')
+    dir_path = os.path.normpath(dir_path)
+    if dir_path == '.':
+        dir_path = ''
     full_path = os.path.join(proj_dir, 'data/images', dir_path)
-    # image_paths = [f for f in os.listdir(full_path) if f.endswith('.png') and os.path.exists(os.path.join(full_path, f).replace('image.png', 'embedding.pth').replace('images', 'embeddings'))]
-    # image_paths = [f for f in os.listdir(full_path) if f.endswith('.png')]
-    # jpg and png
-    image_paths = [f for f in os.listdir(full_path) if f.endswith('.png') or f.endswith('.jpg')]
+
+    entries = os.listdir(full_path)
+    sub_dirs = [f for f in entries if os.path.isdir(os.path.join(full_path, f))]
+    image_paths = [f for f in entries if f.endswith('.png') or f.endswith('.jpg')]
     image_paths = natsorted(image_paths)
-    return jsonify({'imagePaths': image_paths})
+    sub_dirs = natsorted(sub_dirs)
+    sub_dirs = [os.path.join(dir_path, sub_dir) for sub_dir in sub_dirs]
+
+    if dir_path:
+        parent_dir = os.path.join(dir_path, "..")
+        sub_dirs.insert(0, parent_dir) 
+        sub_dirs.insert(0, dir_path)
+
+    print(dir_path == '')
+    return jsonify({'imagePaths': image_paths, 'subDirs': sub_dirs, 'clear': dir_path == ''})
+
 
 @app.route('/selectImage', methods=['POST'])
 def select_image():

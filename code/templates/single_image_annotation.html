@@ -25,9 +25,9 @@
                 <div id="pointControlContainer">
                     <p id="pointControlTitle">Use Points as Prompts:</p>
                     <div id="pointButtonContainer">
-                        <button id="addPositivePointButton" @click="setPointType('positive')" :disabled="!canAddPoints">Add Positive Point</button>
-                        <button id="addNegativePointButton" @click="setPointType('negative')" :disabled="!canAddPoints">Add Negative Point</button>
-                        <button id="stopPointAddingButton" @click="moveToModification" :disabled="!canAddPoints">Stop adding Point</button>
+                        <button id="addPositivePointButton" @click="setPointType('positive')" :disabled="(!canAddPoints)||!withEmbedding">Add Positive Point</button>
+                        <button id="addNegativePointButton" @click="setPointType('negative')" :disabled="(!canAddPoints)||!withEmbedding">Add Negative Point</button>
+                        <button id="stopPointAddingButton" @click="moveToModification" :disabled="(!canAddPoints)">Stop adding Point</button>
                     </div>
                 </div>
                 <div id="brushControlContainer">

@@ -112,6 +112,18 @@ def select_image():
 
     return jsonify({"message": "Success receive image path", "mask_path": os.path.relpath(mask_path, proj_dir) if os.path.exists(mask_path) else None, "embendding_generated": "true"}), 200
 
+@app.route('/setImage', methods=['POST'])
+def setImage():
+    data = request.get_json()
+    image_path = os.path.join(proj_dir, data.get('imagePath'))
+    if image_path.endswith('.png'):
+        mask_path = image_path.replace('image.png', 'mask.png').replace('images', 'masks')
+    else:
+        # end with jpg
+        mask_path = image_path.replace('image.jpg', 'mask.png').replace('images', 'masks')
+    predictor.set_image(image_path)
+    return jsonify({'message': 'Success set image', 'mask_path': os.path.relpath(mask_path, proj_dir) if os.path.exists(mask_path) else None})
+
 @app.route('/getPoint', methods=['POST'])
 def add_point():
     global points

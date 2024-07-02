@@ -10,6 +10,7 @@ const app = Vue.createApp({
             noNextFile: false,
 
             //***// Canvas and Interaction States //***//
+            withEmbedding: false,
             imageLoaded: false,
             canAddPoints: false,
             canModify: false,
@@ -136,37 +137,18 @@ const app = Vue.createApp({
                 console.log('Response from backend:', data.message);
                 console.log('Response from backend: Mask path:', data.mask_path);
         
-                if (data.embendding_generated) {
-                    const img = new Image();
-                    img.onload = () => {
-                        const width = img.width;
-                        const height = img.height;
-
-                        const container = document.getElementById('imageCanvasContainer');
-                        const baseCanvas = document.getElementById('baseImageCanvas');
-                        const maskCanvas = document.getElementById('annotationMaskCanvas');
-                        const markCanvas = document.getElementById('annotationMarkCanvas');
-
-                        const controlPanel = document.getElementById('controlPanelContainer');
-                        controlPanel.style.marginLeft = `${width + 50}px`;
-
-                        container.style.width = `${width}px`;
-                        container.style.height = `${height}px`;
-
-                        [baseCanvas, maskCanvas, markCanvas].forEach(canvas => {
-                            canvas.width = width;
-                            canvas.height = height;
-                        });
-                        
-                        baseCtx.clearRect(0, 0, baseCanvas.width, baseCanvas.height);
-                        baseCtx.drawImage(img, 0, 0, width, height);
-
-                        if (data.mask_path) {
-                            this.loadMask(data.mask_path);
-                        }
-                    };
-                    img.src = imagePath;
-                    this.imageLoaded = true;
+                if (data.embendding_generated === "true") {
+                    this.withEmbedding = true;
+                    this.loadImageAndMask(imagePath, data.mask_path);
+                } else {
+                    const generateEmbedding = confirm("Embedding not found. Do you want to generate it?");
+                    if (generateEmbedding) {
+                        this.withEmbedding = true;
+                        this.generateEmbedding(imagePath);
+                    } else {
+                        this.withEmbedding = false;
+                        this.loadImageAndMask(imagePath, data.mask_path);
+                    }
                 }
             })
             .catch(error => {
@@ -178,7 +160,55 @@ const app = Vue.createApp({
             const currentIndex = this.imagePaths.indexOf(this.selectedFile);
             this.noPreFile = currentIndex === 0;
             this.noNextFile = currentIndex === this.imagePaths.length - 1;
-        },        
+        },  
+        loadImageAndMask(imagePath, maskPath) {
+            const img = new Image();
+            img.onload = () => {
+                const width = img.width;
+                const height = img.height;
+        
+                const container = document.getElementById('imageCanvasContainer');
+                const baseCanvas = document.getElementById('baseImageCanvas');
+                const maskCanvas = document.getElementById('annotationMaskCanvas');
+                const markCanvas = document.getElementById('annotationMarkCanvas');
+        
+                const controlPanel = document.getElementById('controlPanelContainer');
+                controlPanel.style.marginLeft = `${width + 50}px`;
+        
+                container.style.width = `${width}px`;
+                container.style.height = `${height}px`;
+        
+                [baseCanvas, maskCanvas, markCanvas].forEach(canvas => {
+                    canvas.width = width;
+                    canvas.height = height;
+                });
+                
+                const baseCtx = baseCanvas.getContext('2d');
+                baseCtx.clearRect(0, 0, baseCanvas.width, baseCanvas.height);
+                baseCtx.drawImage(img, 0, 0, width, height);
+        
+                if (maskPath) {
+                    this.loadMask(maskPath);
+                }
+            };
+            img.src = imagePath;
+            this.imageLoaded = true;
+        },
+        generateEmbedding(imagePath) {
+            fetch('/setImage', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ imagePath })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Response from backend:', data.message);
+                this.loadImageAndMask(imagePath, data.mask_path);
+            }
+            )
+        },      
         loadMask(maskPath) {
             const maskCanvas = document.getElementById('annotationMaskCanvas');
             const ctx = maskCanvas.getContext('2d');

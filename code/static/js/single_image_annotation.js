@@ -206,6 +206,7 @@ const app = Vue.createApp({
         },
         //*************************************************Maskcanvas Logic************************************************************//
         adjustOpacity(event) {
+            this.opacity = event.target.value / 100;
             document.getElementById('opacityIndicator').innerText = `Opacity: ${this.opacity}`;
             document.getElementById('annotationMaskCanvas').style.opacity = this.opacity;
         },

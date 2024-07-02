@@ -108,7 +108,7 @@ def select_image():
     if os.path.exists(embedding_path):
         predictor.set_embedding(embedding_path, image_path)
     else:
-        predictor.set_image(image_path)
+        return jsonify({"message": "Success receive image path", "mask_path": os.path.relpath(mask_path, proj_dir) if os.path.exists(mask_path) else None, "embendding_generated": "false"}), 200
 
     return jsonify({"message": "Success receive image path", "mask_path": os.path.relpath(mask_path, proj_dir) if os.path.exists(mask_path) else None, "embendding_generated": "true"}), 200
 

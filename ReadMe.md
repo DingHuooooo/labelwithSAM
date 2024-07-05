@@ -1,13 +1,7 @@
 # **Quick Start Guide**:
 
-# **V1.1 ToDos**:
-- ✅ **Image without embedding**
-  - If there is an image without embedding, directly load the image and use this tool to make the mask manually.
-  - This feature can be realized by introducing a pop-up window to ask whether to generate the embedding or not.
-- ✅ **Mask color adjustment**
-  - The mask color is too red, enable transparency adjustment to moderate the intensity.
-- ✅ **Select any dir**
-  - Implement functionality to allow users to choose any data directory from the file system.
+# **V1.2 ToDos**:
+- ❌ **Multimask**
 - ❌ **Build a .exe**
   - Compile the application into an executable (.exe) file for easier distribution and usage.
 

@@ -53,6 +53,10 @@ def custom_static(category, filename):
 def single_image_annotation():
     return render_template('single_image_annotation.html')
 
+@app.route('/multiple_image_annotation', methods=['GET'])
+def multiple_image_annotation():
+    return render_template('multiple_image_annotation.html')
+
 @app.route('/searchDirs', methods=['GET'])
 def search_dirs():
     global proj_dir

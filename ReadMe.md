@@ -1,10 +1,10 @@
 # **Quick Start Guide**:
 
 # **V1.1 ToDos**:
-- ❌ **Image without embedding**
+- ✅ **Image without embedding**
   - If there is an image without embedding, directly load the image and use this tool to make the mask manually.
   - This feature can be realized by introducing a pop-up window to ask whether to generate the embedding or not.
-- ❌ **Mask color adjustment**
+- ✅ **Mask color adjustment**
   - The mask color is too red, enable transparency adjustment to moderate the intensity.
 - ✅ **Select any dir**
   - Implement functionality to allow users to choose any data directory from the file system.

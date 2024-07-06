@@ -13,7 +13,7 @@
                 <span class="close" @click="closeModal">&times;</span>
                 <label for="postfixInput">Please enter a postfix for the mask:</label>
                 <span id="savedMaskName">The saved mask name will be: </span>
-                <span id="savedMaskName">{{ computedMaskName }} </span>
+                <span id="savedMaskName">[[ computedMaskName ]] </span>
                 <input type="text" id="postfixInput" v-model="maskPostfix">
                 <button @click="saveMask">Save Mask</button>
             </div>
@@ -67,8 +67,8 @@
                 </div>                
                 <div id="maskOperationContainer">
                     <button id="clearMaskButton" @click="clearAllAnnotations" :disabled="blockedByLasso||!imageLoaded">Clear Mask</button>
-                    <button id="saveMaskButton" @click="saveCurrentMask" :disabled="blockedByLasso||!imageLoaded">Save Current Mask</button>
-                    <button id="saveMaskButton" @click="saveNewMask" :disabled="blockedByLasso||!imageLoaded">Save to New Mask</button>
+                    <button id="saveMaskButton" @click="saveCurrentMask" :disabled="blockedByLasso||!imageLoaded||!canOverwrite">Overwrite Mask</button>
+                    <button id="saveMaskButton" @click="saveNewMask" :disabled="blockedByLasso||!imageLoaded">Save New Mask</button>
                 </div>
             </div>
         </div>

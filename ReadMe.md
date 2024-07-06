@@ -1,7 +1,8 @@
 # **Quick Start Guide**:
 
 # **V1.2 ToDos**:
-- ❌ **Multimask**
+- ✅ **Multimask**
+- ❌ **Check file names before**
 - ❌ **Build a .exe**
   - Compile the application into an executable (.exe) file for easier distribution and usage.
 

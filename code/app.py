@@ -11,6 +11,8 @@ from natsort import natsorted
 from .static.sam.predictor_for_app import Predictor
 
 app = Flask(__name__)
+app.jinja_env.variable_start_string = '[%'
+app.jinja_env.variable_end_string = '%]'
 points = []
 mask = None
 image_path = None
@@ -87,12 +89,11 @@ def search_image_paths():
         sub_dirs.insert(0, parent_dir) 
         sub_dirs.insert(0, dir_path)
 
-    return jsonify({'imagePaths': image_paths, 'subDirs': sub_dirs, 'clear': dir_path == ''})
-
+    return jsonify({'imagePaths': image_paths, 'dir': dir_path, 'subDirs': sub_dirs, 'clear': dir_path == ''})
 
 @app.route('/selectImage', methods=['POST'])
 def select_image():
-    global image_path, embedding_path, points, proj_dir
+    global image_path, embedding_path, proj_dir
     predictor.reset_predictor()
     data = request.get_json()
     image_path = os.path.join(proj_dir, data.get('imagePath'))
@@ -102,11 +103,11 @@ def select_image():
         # end with jpg
         embedding_path = image_path.replace('image.jpg', 'embedding.pth').replace('images', 'embeddings')
 
-    image_name = os.path.basename(data.get('imagePath')).split('.')[0].split('_')[0]
+    image_name = os.path.basename(data.get('imagePath')).split('_image')[0]
     points_path = os.path.dirname(data.get('imagePath')).replace('images', 'points')
     mask_path = os.path.dirname(data.get('imagePath').replace('images', 'masks'))
 
-    mask_paths_pattern = os.path.join(proj_dir, mask_path, f'*{image_name}*')
+    mask_paths_pattern = os.path.join(proj_dir, mask_path, f'*{image_name}_*')
     mask_paths = glob.glob(mask_paths_pattern)
     mask_paths = [os.path.basename(mask_path) for mask_path in mask_paths]
     
@@ -132,6 +133,22 @@ def setImage():
         mask_path = image_path.replace('image.jpg', 'mask.png').replace('images', 'masks')
     predictor.set_image(image_path)
     return jsonify({'message': 'Success set image', 'mask_path': os.path.relpath(mask_path, proj_dir) if os.path.exists(mask_path) else None})
+
+@app.route('/selectMask', methods=['POST'])
+def selectMask():
+    data = request.get_json()
+    global mask_path, points_path, points
+    mask_path = os.path.join(proj_dir, data.get('maskPath'))
+    points_dir = mask_path.replace('masks', 'points')
+    points_base = os.path.basename(mask_path).replace('mask', 'points').replace('.png', '.npy')
+    points_path = os.path.join(os.path.dirname(points_dir), points_base)
+
+    if os.path.exists(points_path):
+        points = np.load(points_path, allow_pickle=True)
+    else:
+        points = []
+
+    return jsonify({'message': 'Success set mask_path points_path'})
 
 @app.route('/getPoint', methods=['POST'])
 def add_point():
@@ -167,23 +184,24 @@ def clear_points():
 
 @app.route('/saveMask', methods=['POST'])
 def save_mask():
-    global image_path, points
+    global image_path, points, proj_dir
     data = request.get_json()
     img = decode_data(data['imageData'])
+    mask_name = data.get('filename')
+    points_name = mask_name.replace('mask', 'points').replace('.png', '.npy')
+    mask_path = image_path.replace('image.png', 'mask.png').replace('images', 'masks')
+    points_path = image_path.replace('image.png', 'points.npy').replace('images', 'points')
+    if not os.path.exists(os.path.dirname(mask_path)):
+        os.makedirs(os.path.dirname(mask_path))
+    if not os.path.exists(os.path.dirname(points_path)):
+        os.makedirs(os.path.dirname(points_path))
+    mask_path = os.path.join(os.path.dirname(mask_path), mask_name)
+    points_path = os.path.join(os.path.dirname(points_path), points_name)
     _, binary_img = cv2.threshold(img, 2, 1, cv2.THRESH_BINARY)
-    os.makedirs(f'{os.path.join(os.path.dirname(image_path))}'.replace('images', 'masks'), exist_ok=True)
-    os.makedirs(f'{os.path.join(os.path.dirname(image_path))}'.replace('images', 'points'), exist_ok=True)
-    if image_path.endswith('.png'):
-        mask_path = f'{os.path.join(os.path.dirname(image_path),os.path.basename(image_path))}'.replace('image.png', 'mask.png').replace('images', 'masks')
-        points_path = f'{os.path.join(os.path.dirname(image_path),os.path.basename(image_path))}'.replace('image.png', 'points.npy').replace('images', 'points')
-    else:
-        # end with jpg
-        mask_path = f'{os.path.join(os.path.dirname(image_path),os.path.basename(image_path))}'.replace('image.jpg', 'mask.png').replace('images', 'masks')
-        points_path = f'{os.path.join(os.path.dirname(image_path),os.path.basename(image_path))}'.replace('image.jpg', 'points.npy').replace('images', 'points')
     cv2.imwrite(mask_path, binary_img * 255)
     np.save(points_path, points)
     # return jsonify({'message': 'Success save mask', 'mask_path': image_path.replace('image.png', 'mask.png').replace('images', 'masks')})
-    return jsonify({'message': 'Success save mask', 'mask_path': mask_path})
+    return jsonify({'message': 'Success save mask', 'mask_path': os.path.relpath(mask_path, proj_dir)})
 
 def decode_data(data) -> np.ndarray:
     image_data = data.split(",")[1]  # Remove the "data:image/png;base64," part
@@ -193,7 +211,6 @@ def decode_data(data) -> np.ndarray:
     img = img[:, :, :3]  # Remove the alpha channel
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  # Convert to grayscale
     return img
-
 
 if __name__ == '__main__':
     from .utils import print_pretty_header

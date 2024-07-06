@@ -4,6 +4,7 @@ import numpy as np
 import base64
 import io
 import argparse
+import glob
 from flask import Flask, render_template, request, send_from_directory, jsonify
 from natsort import natsorted
 
@@ -13,6 +14,8 @@ app = Flask(__name__)
 points = []
 mask = None
 image_path = None
+mask_path = None
+points_path = None
 embedding_path = None
 predictor = Predictor()
 
@@ -84,7 +87,6 @@ def search_image_paths():
         sub_dirs.insert(0, parent_dir) 
         sub_dirs.insert(0, dir_path)
 
-    print(dir_path == '')
     return jsonify({'imagePaths': image_paths, 'subDirs': sub_dirs, 'clear': dir_path == ''})
 
 
@@ -95,26 +97,29 @@ def select_image():
     data = request.get_json()
     image_path = os.path.join(proj_dir, data.get('imagePath'))
     if image_path.endswith('.png'):
-        mask_path = image_path.replace('image.png', 'mask.png').replace('images', 'masks')
         embedding_path = image_path.replace('image.png', 'embedding.pth').replace('images', 'embeddings')
-        points_path = image_path.replace('image.png', 'points.npy').replace('images', 'points')
     else:
         # end with jpg
-        mask_path = image_path.replace('image.jpg', 'mask.png').replace('images', 'masks')
         embedding_path = image_path.replace('image.jpg', 'embedding.pth').replace('images', 'embeddings')
-        points_path = image_path.replace('image.jpg', 'points.npy').replace('images', 'points')
 
-    if os.path.exists(points_path):
-        points = np.load(points_path, allow_pickle=True)
-    else:
-        points = []
+    image_name = os.path.basename(data.get('imagePath')).split('.')[0].split('_')[0]
+    points_path = os.path.dirname(data.get('imagePath')).replace('images', 'points')
+    mask_path = os.path.dirname(data.get('imagePath').replace('images', 'masks'))
+
+    mask_paths_pattern = os.path.join(proj_dir, mask_path, f'*{image_name}*')
+    mask_paths = glob.glob(mask_paths_pattern)
+    mask_paths = [os.path.basename(mask_path) for mask_path in mask_paths]
+    
+    points_paths_pattern = os.path.join(proj_dir, points_path, f'*{image_name}*')
+    points_paths = glob.glob(points_paths_pattern)
+    points_paths = [os.path.basename(points_path) for points_path in points_paths]
 
     if os.path.exists(embedding_path):
         predictor.set_embedding(embedding_path, image_path)
     else:
-        return jsonify({"message": "Success receive image path", "mask_path": os.path.relpath(mask_path, proj_dir) if os.path.exists(mask_path) else None, "embendding_generated": "false"}), 200
+        return jsonify({"message": "Success receive image path", "mask_paths": mask_paths, "embendding_generated": "false"}), 200
 
-    return jsonify({"message": "Success receive image path", "mask_path": os.path.relpath(mask_path, proj_dir) if os.path.exists(mask_path) else None, "embendding_generated": "true"}), 200
+    return jsonify({"message": "Success receive image path", "mask_paths": mask_paths, "embendding_generated": "true"}), 200
 
 @app.route('/setImage', methods=['POST'])
 def setImage():

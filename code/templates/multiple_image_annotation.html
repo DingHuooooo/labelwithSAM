@@ -8,6 +8,16 @@
 </head>
 <body>
     <div id="appContainer">
+        <div v-if="showModal" class="modal" v-cloak>
+            <div class="modal-content">
+                <span class="close" @click="closeModal">&times;</span>
+                <label for="postfixInput">Please enter a postfix for the mask:</label>
+                <span id="savedMaskName">The saved mask name will be: </span>
+                <span id="savedMaskName">{{ computedMaskName }} </span>
+                <input type="text" id="postfixInput" v-model="maskPostfix">
+                <button @click="saveMask">Save Mask</button>
+            </div>
+        </div>
         <div id="mainImageControlContainer">
             <div id="imageCanvasContainer">
                 <canvas id="baseImageCanvas" width="1024" height="1024" :style="{ zIndex: 1 }"></canvas>
@@ -20,6 +30,12 @@
                     <div id="opacityExampleContainer">
                         <span id="opacityIndicator">Opacity: 0.2</span>
                         <input type="range" id="opacityAdjuster" min="10" max="90" value="20" @input="adjustOpacity">
+                    </div>
+                    <div id="maskSelectContainer">
+                        <p id="maskSelectTitle">Select a mask:</p>
+                        <select id="mask-select" v-model="selectedMask" @change="handleMaskSelection">
+                            <option disabled value="">Select a mask</option>
+                        </select>
                     </div>
                 </div>
                 <div id="pointControlContainer">
@@ -51,7 +67,8 @@
                 </div>                
                 <div id="maskOperationContainer">
                     <button id="clearMaskButton" @click="clearAllAnnotations" :disabled="blockedByLasso||!imageLoaded">Clear Mask</button>
-                    <button id="saveMaskButton" @click="saveCurrentMask" :disabled="blockedByLasso||!imageLoaded">Save Mask</button>
+                    <button id="saveMaskButton" @click="saveCurrentMask" :disabled="blockedByLasso||!imageLoaded">Save Current Mask</button>
+                    <button id="saveMaskButton" @click="saveNewMask" :disabled="blockedByLasso||!imageLoaded">Save to New Mask</button>
                 </div>
             </div>
         </div>
@@ -63,7 +80,7 @@
             
                 <div id="file-selection-container">
                     <select id="file-select" v-model="selectedFile" @change="handleFileSelection">
-                        <option disabled value="" selected>Select a file</option>
+                        <option disabled value="">Select a file</option>
                     </select>
                     <button type="button" id="prevFileButton" @click="selectPreviousFile" :disabled="blockedByLasso||noPreFile||!imageLoaded">&#10094;</button>
                     <button type="button" id="nextFileButton" @click="selectNextFile" :disabled="blockedByLasso||noNextFile||!imageLoaded">&#10095;</button>
@@ -72,7 +89,7 @@
         </div>
         <div id="noteContainer">
             <p>Notes:</p>
-            <p>1. Only directories and .png images under <span class="underline">data/images/</span> will be listed.</p>
+            <p>1. Only directories and images under <span class="underline">data/images/</span> will be listed. Name image like xxx_image.png/jpg</p>
             <p>2. Images with corresponding embeddings in <span class="underline">data/embeddings/</span> are listed. If adding points yields wierd results, delete the embedding and retry.</p>
             <p>3. Use <span class="underline">rightClick</span> to exit editing mode.</p>
             <p>4. Masks are saved to <span class="underline">data/masks</span> upon clicking "Save Mask".</p>
@@ -80,7 +97,7 @@
 
         </div>
     </div>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/vue@3.2.31/dist/vue.global.prod.js"></script>
     <script src="../static/js/multiple_image_annotation.js"></script>
 </body>
 </html>

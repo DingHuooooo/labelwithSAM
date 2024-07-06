@@ -26,7 +26,7 @@ button {
     color: white;
     border: none;
     padding: 10px;
-    margin: 0 10px;
+    margin: 0 5px;
     border-radius: 5px;
     cursor: pointer;
     font-size: 20px;
@@ -101,7 +101,12 @@ button:hover {
     font-weight: bold;
     margin-left: 20px;
 }
-
+#maskSelectTitle{
+    font-size: 20px;
+    width: 200px;
+    margin-right: 20px;
+    margin-left: 20px;
+}
 /* Button Containers */
 #pointButtonContainer,
 #brushButtonContainer,
@@ -178,6 +183,7 @@ button:hover {
 /* Mask Buttons */
 #clearMaskButton,
 #saveMaskButton {
+    width: 200px;
     background-color: #ff3434;
 }
 
@@ -210,7 +216,7 @@ button:hover {
     flex-direction: row;
     background-color: #ffffff;
     border-radius: 5px;
-    height: 80px;
+    height: 60px;
 }
 
 #brushSizeIndicator,
@@ -251,4 +257,96 @@ button:hover {
 #noteContainer p {
     margin: 15px 0;
     font-size: 16px;
+}
+
+/* Mask Select */
+#mask-select{
+    width: 50%;
+    height: 40px;
+    font-size: 16px;
+    padding: 8px;
+    border: 1px solid #afafaf;
+    border-radius: 4px;
+}
+#maskSelectContainer{
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    background-color: #ffffff;
+    border-radius: 5px;
+    height: 80px;
+}
+.modal {
+    display: block; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 9999; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+.modal-content {
+    display: flex;           
+    flex-direction: column; 
+    align-items: center;     
+    justify-content: center;
+    background-color: #fefefe;
+    margin: 5% auto;         
+    padding: 20px;
+    border: 1px solid #888;
+    width: 40%;              
+    height: auto;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+label {
+    display: block; 
+    margin-bottom: 12px; 
+    color: #333; 
+    font-size: 20px; 
+    font-weight: bold; 
+    margin-top: 5%;
+}
+
+input[type="text"] {
+    width: 60%; 
+    padding: 8px; 
+    margin-bottom: 20px;
+    border: 1px solid #ccc; 
+    border-radius: 4px; /
+}
+
+#savedMaskName {
+    font-size: 20px;
+    width: auto;
+    margin-right: 20px;
+    margin-left: 20px;
+    margin-bottom: 5%;
+}
+
+input[type="text"]:focus {
+    border-color: #0056b3; 
+    box-shadow: 0 0 8px rgba(0, 86, 179, 0.3); 
+}
+
+
+[v-cloak] {
+    display: none;
 }

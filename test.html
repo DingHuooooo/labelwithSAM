@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue Modal Example</title>
+    <style>
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 50%; /* Could be more or less, depending on screen size */
+            text-align: center;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        [v-cloak] {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div v-if="showModal" class="modal-content" v-cloak>
+            <span class="close" @click="closeModal">&times;</span>
+            <label for="postfixInput">Please enter a postfix for the mask:</label>
+            <span id="savedMaskName">The saved mask name will be: </span>
+            <span>{{ computedMaskName }}</span>
+            <input type="text" id="postfixInput" v-model="maskPostfix">
+            <button @click="saveMask">Save Mask</button>
+        </div>
+
+        <!-- Button to open modal -->
+        <button @click="openModal">Open Modal</button>
+    </div>
+
+    <script src="https://unpkg.com/vue@3.2.31/dist/vue.global.prod.js"></script>
+    <script>
+        const app = Vue.createApp({
+            data() {
+                return {
+                    maskPrefix: 'example_',
+                    maskPostfix: '',
+                    showModal: false
+                };
+            },
+            computed: {
+                computedMaskName() {
+                    return `${this.maskPrefix}${this.maskPostfix}.png`;
+                }
+            },
+            methods: {
+                openModal() {
+                    this.showModal = true;
+                },
+                closeModal() {
+                    this.showModal = false;
+                },
+                saveMask() {
+                    alert(`Saving mask as: ${this.computedMaskName}`);
+                    this.closeModal();
+                }
+            },
+        });
+
+        app.mount('#app');
+    </script>
+</body>
+</html>

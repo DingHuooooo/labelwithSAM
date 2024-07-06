@@ -3,11 +3,16 @@ const app = Vue.createApp({
         return {
             //***// Path and File Management //***//
             imageBasePath: 'data/images',
+            maskBasePath: 'data/masks',
             selectedDirectory: '',
             imagePaths: [],
             selectedFile: '',
+            selectedMask: '',
             noPreFile: false,
             noNextFile: false,
+            showModal: true,
+            maskPostfix: '', 
+            maskPrefix: '',
 
             //***// Canvas and Interaction States //***//
             withEmbedding: false,
@@ -69,7 +74,7 @@ const app = Vue.createApp({
                 .then(response => response.json())
                 .then(data => {
                     const dirSelect = document.getElementById('dir-select');
-                    dirSelect.innerHTML = '<option disabled value="">Select a directory or file</option>';
+                    dirSelect.innerHTML = '<option disabled value="">Select a directory</option>';
 
                     data.subDirs.forEach(subDir => {
                         const option = document.createElement('option');
@@ -83,16 +88,27 @@ const app = Vue.createApp({
                     }
                             
                     const fileSelect = document.getElementById('file-select');
-                    fileSelect.innerHTML = '<option disabled value="" selected>Select a file</option>';
-                    this.imagePaths = data.imagePaths; 
-                    data.imagePaths.forEach(file => {
-                        const option = document.createElement('option');
-                        option.value = file;
-                        option.textContent = file;
-                        fileSelect.appendChild(option);
-                    });
+                    fileSelect.innerHTML = '';
+                    this.selectedFile = '';
                     
-                    // 如果没有子目录也没有文件，可能需要处理这种情况
+                    const defaultOption = document.createElement('option');
+                    defaultOption.disabled = true;
+                    defaultOption.selected = true; // Ensure default option is selected
+                    defaultOption.value = '';
+                    defaultOption.textContent = 'Select a file';
+                    fileSelect.appendChild(defaultOption);
+                    
+                    if (data.imagePaths && data.imagePaths.length > 0) {
+                        this.imagePaths = data.imagePaths;
+
+                        data.imagePaths.forEach(file => {
+                            const option = document.createElement('option');
+                            option.value = file;
+                            option.textContent = file;
+                            fileSelect.appendChild(option);
+                        });
+                    }
+                    
                     if (!data.subDirs.length && !data.imagePaths.length) {
                         alert('No subdirectories or files found');
                     }
@@ -116,6 +132,7 @@ const app = Vue.createApp({
             this.noNextFile = currentIndex === this.imagePaths.length - 2;
         },
         handleFileSelection() {
+            console.log('Selected file:', this.selectedFile);
             this.initializeCanvasAndMask();
             const imagePath = `${this.imageBasePath}/${this.selectedDirectory}/${this.selectedFile}`;
             const baseCanvas = document.getElementById('baseImageCanvas');
@@ -124,7 +141,7 @@ const app = Vue.createApp({
             baseCtx.clearRect(0, 0, baseCanvas.width, baseCanvas.height);
             baseCtx.font = '20px Arial';
             baseCtx.fillText('Corresponding embedding not found. Waiting for generating...', baseCanvas.width / 2 - 350, baseCanvas.height / 2);
-
+            
             fetch('/selectImage', {
                 method: 'POST',
                 headers: {
@@ -134,20 +151,36 @@ const app = Vue.createApp({
             })
             .then(response => response.json())
             .then(data => {
-                console.log('Response from backend:', data.message);
-                console.log('Response from backend: Mask path:', data.mask_path);
+                console.log('Response from backend: Mask path:', data.mask_paths);
+                
+                const dirSelect = document.getElementById('mask-select');
+                dirSelect.innerHTML = '<option disabled value="">Select a mask</option>';
+
+                data.mask_paths.forEach(mask_path => {
+                    const option = document.createElement('option');
+                    option.value = mask_path;
+                    option.textContent = mask_path;
+                    dirSelect.appendChild(option);
+                });
+
+                // Determine the default mask path based on the availability of mask paths
+                this.selectedMask = data.mask_paths.length > 0 ? data.mask_paths[0] : ''
+                const maskPath = `${this.maskBasePath}/${this.selectedDirectory}/${this.selectedMask}`;;
+                this.loadImageAndMask(imagePath, maskPath);
+
+                // Optionally, select the first mask option in the dropdown if mask paths are available
+                if (data.mask_paths.length > 0) {
+                    dirSelect.value = data.mask_paths[0];
+                }
         
                 if (data.embendding_generated === "true") {
                     this.withEmbedding = true;
-                    this.loadImageAndMask(imagePath, data.mask_path);
                 } else {
                     const generateEmbedding = confirm("Embedding not found. Do you want to generate it?");
                     if (generateEmbedding) {
-                        this.withEmbedding = true;
                         this.generateEmbedding(imagePath);
                     } else {
                         this.withEmbedding = false;
-                        this.loadImageAndMask(imagePath, data.mask_path);
                     }
                 }
             })
@@ -160,7 +193,7 @@ const app = Vue.createApp({
             const currentIndex = this.imagePaths.indexOf(this.selectedFile);
             this.noPreFile = currentIndex === 0;
             this.noNextFile = currentIndex === this.imagePaths.length - 1;
-        },  
+        },
         loadImageAndMask(imagePath, maskPath) {
             const img = new Image();
             img.onload = () => {
@@ -194,6 +227,11 @@ const app = Vue.createApp({
             img.src = imagePath;
             this.imageLoaded = true;
         },
+        handleMaskSelection() {
+            const imagePath = `${this.imageBasePath}/${this.selectedDirectory}/${this.selectedFile}`;
+            const maskPath = `${this.maskBasePath}/${this.selectedDirectory}/${this.selectedMask}`;
+            this.loadImageAndMask(imagePath, maskPath);
+        },    
         generateEmbedding(imagePath) {
             fetch('/setImage', {
                 method: 'POST',
@@ -204,14 +242,13 @@ const app = Vue.createApp({
             })
             .then(response => response.json())
             .then(data => {
-                console.log('Response from backend:', data.message);
-                this.loadImageAndMask(imagePath, data.mask_path);
+                this.withEmbedding = true;
             }
             )
         },      
         loadMask(maskPath) {
             const maskCanvas = document.getElementById('annotationMaskCanvas');
-            const ctx = maskCanvas.getContext('2d');
+            const ctx = maskCanvas.getContext('2d', { willReadFrequently: true });
             const maskImg = new Image();
             maskImg.onload = () => {
                 ctx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
@@ -277,7 +314,6 @@ const app = Vue.createApp({
             })
                 .then(response => response.json())
                 .then(data => {
-                    console.log('Response from backend:', data.message);
                     this.currentMaskData = data.mask_data;
                     this.refreshMaskDisplay();
                 })
@@ -521,13 +557,11 @@ const app = Vue.createApp({
         clearMarkCanvasListeners() {
             const markCanvas = document.getElementById('annotationMarkCanvas');
             if (this.isPointListenerAdded) {
-                console.log('Clearing point listeners');
                 markCanvas.removeEventListener('click', this.pushPoint);
                 markCanvas.removeEventListener('contextmenu', this.stopAddingPoints);
                 this.isPointListenerAdded = false;
             }
             if (this.isBrushListenersAdded) {
-                console.log('Clearing brush listeners');
                 markCanvas.removeEventListener('mousedown', this.beginBrushStroke);
                 markCanvas.removeEventListener('mousemove', this.handleBrushMovement);
                 markCanvas.removeEventListener('mouseup', this.endBrushStroke);
@@ -535,7 +569,6 @@ const app = Vue.createApp({
                 this.isBrushListenersAdded = false;
             }
             if (this.isLassoListenersAdded) {
-                console.log('Clearing lasso listeners');
                 markCanvas.removeEventListener('mousedown', this.handleMouseDown);
                 markCanvas.removeEventListener('mousemove', this.handleMouseMove);
                 markCanvas.removeEventListener('mouseup', this.handleMouseUp);
@@ -572,9 +605,6 @@ const app = Vue.createApp({
                 },
             })
             .then(response => response.json())
-            .then(data => {
-                console.log('Response from backend:', data.message);
-            })
             .catch(error => console.error('Error clearing points and mask:', error));
             this.mask_history = [];
             this.canRetrieve = false;
@@ -587,17 +617,45 @@ const app = Vue.createApp({
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ imageData: imageDataURL })
+                body: JSON.stringify( { imageData: imageDataURL, filename: this.selectedMask } )
             })
             .then(response => response.json())
             .then(data => {
-                console.log('Response from backend:', data.message);
                 console.log('Mask saved to:', data.mask_path)
                 alert('Mask saved!\nPath: ' + data.mask_path);
             })
             .catch(error => {
                 console.error('Error saving the mask:', error);
             });
+        },
+        closeModal() {
+            this.showModal = false;
+        },
+        saveNewMask() {
+            underScoreIndex = this.selectedMask.indexOf('_mask')+5;
+            this.showModal = true;
+        },
+        saveMask() {
+            const filename = this.computedMaskName;
+            const maskCanvas = document.getElementById('annotationMaskCanvas');
+                const imageDataURL = maskCanvas.toDataURL('image/png');
+        
+                fetch('/saveMask', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ imageData: imageDataURL, filename: filename }) // Send filename along with image data
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Mask saved to:', data.mask_path)
+                    alert('Mask saved!\nPath: ' + data.mask_path);
+                })
+                .catch(error => {
+                    console.error('Error saving the mask:', error);
+                });
+            this.showModal = false;  // Close the modal after saving
         },
         //*************************************************Brush Size Logic************************************************************//
         adjustBrushSize(event) {
@@ -616,6 +674,11 @@ const app = Vue.createApp({
             const maskCanvas = document.getElementById('annotationMaskCanvas');
             const imageDataURL = maskCanvas.toDataURL('image/png');
             this.mask_history.push(imageDataURL);
+            // Check if the history exceeds the maximum buffer size of 10
+            if (this.mask_history.length > 10) {
+                // Remove the oldest entry to maintain the buffer size of 10
+                this.mask_history.shift();
+            }
             if (this.mask_history.length > 1) {this.canRetrieve = true;}
         },
         retrieveStep() {
@@ -651,6 +714,10 @@ const app = Vue.createApp({
             } else {
                 return 'default';
             }
+        },
+        computedMaskName() {
+            console.log('Computing')
+            return `${this.maskPrefix}${this.maskPostfix}.png`;
         }
     },
     mounted() {

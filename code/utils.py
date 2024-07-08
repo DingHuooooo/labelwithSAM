@@ -6,10 +6,11 @@ from .static.sam.predictor_for_app import Predictor
 def print_pretty_header():
     # Use a consistent width for the border
     print()
-    width = 74
+    width = 88
     print("*" * width)
-    print("*" + "Please specify the data directory using an absolute path.".center(width - 2) + "*")
+    print("*" + "Please specify the data directory using an absolute path. Do not need \"\" or ''".center(width - 2) + "*")
     print("*" + "Ensure the directory structure meets the required specifications.".center(width - 2) + "*")
+    print("*" + r"For example: C:\Users\xxx\Desktop\web_label_tool\data.".center(width - 2) + "*")
     print("*" + "Refer to the readme.md for more detailed information.".center(width - 2) + "*")
     print("*" * width)
     print()

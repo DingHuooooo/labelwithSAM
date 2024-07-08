@@ -230,6 +230,7 @@ const app = Vue.createApp({
         },
         handleMaskSelection() {
             const imagePath = `${this.imageBasePath}/${this.selectedDirectory}/${this.selectedFile}`;
+            this.loadImage(imagePath)
             const maskPath = `${this.maskBasePath}/${this.selectedDirectory}/${this.selectedMask}`;
             if (this.selectedMask != ''){
                 fetch('/selectMask', {
@@ -240,7 +241,6 @@ const app = Vue.createApp({
                     body: JSON.stringify({ maskPath: maskPath })
                 })
                 .then(response => response.json())
-                .then(() => this.loadImage(imagePath))
                 .then(() => this.loadMask(maskPath))
                 .catch(error => {
                     console.error('Failed to select mask:', error);

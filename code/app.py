@@ -126,13 +126,18 @@ def select_image():
 def setImage():
     data = request.get_json()
     image_path = os.path.join(proj_dir, data.get('imagePath'))
+    image_name = os.path.basename(data.get('imagePath')).split('_image')[0]
+    mask_path = os.path.dirname(data.get('imagePath').replace('images', 'masks'))
+    mask_paths_pattern = os.path.join(proj_dir, mask_path, f'*{image_name}_*')
+    mask_paths = glob.glob(mask_paths_pattern)
+    mask_paths = [os.path.basename(mask_path) for mask_path in mask_paths]
     if image_path.endswith('.png'):
         mask_path = image_path.replace('image.png', 'mask.png').replace('images', 'masks')
     else:
         # end with jpg
         mask_path = image_path.replace('image.jpg', 'mask.png').replace('images', 'masks')
     predictor.set_image(image_path)
-    return jsonify({'message': 'Success set image', 'mask_path': os.path.relpath(mask_path, proj_dir) if os.path.exists(mask_path) else None})
+    return jsonify({'message': 'Success set image', 'mask_paths': mask_paths})
 
 @app.route('/selectMask', methods=['POST'])
 def selectMask():

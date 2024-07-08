@@ -154,15 +154,16 @@ const app = Vue.createApp({
             .then(response => response.json())
             .then(data => {
                 console.log('Response from backend: Mask path:', data.mask_paths);
-                this.loadMaskOptions(data.mask_paths);
                 if (data.embendding_generated === "true") {
                     this.withEmbedding = true;
+                    this.loadMaskOptions(data.mask_paths);
                 } else {
                     const generateEmbedding = confirm("Embedding not found. Do you want to generate it?");
                     if (generateEmbedding) {
                         this.generateEmbedding(imagePath);
                     } else {
                         this.withEmbedding = false;
+                        this.loadMaskOptions(data.mask_paths);
                     }
                 }
             })
@@ -257,6 +258,7 @@ const app = Vue.createApp({
             .then(response => response.json())
             .then(data => {
                 this.withEmbedding = true;
+                this.loadMaskOptions(data.mask_paths);
             }
             )
         },      

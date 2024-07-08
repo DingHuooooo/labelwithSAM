@@ -32,3 +32,8 @@ def process_images(images_dir, model_type):
                 
                 os.makedirs(embeddings_dir, exist_ok=True)
                 torch.save(image_embedding, os.path.join(embeddings_dir, embedding_file))
+import numpy as np
+def print_numpy_data(path):
+    # 使用 allow_pickle=True 安全加载包含对象的 NumPy 文件
+    data = np.load(path, allow_pickle=True)
+    print(data)

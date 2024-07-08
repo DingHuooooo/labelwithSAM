@@ -705,6 +705,7 @@ const app = Vue.createApp({
                     .then(data => {
                         console.log('Response from backend: Mask path:', data.mask_paths);
                         this.loadMaskOptions(data.mask_paths);
+                        this.clearAllAnnotations();
                     })
                 })
                 .catch(error => {
@@ -712,7 +713,6 @@ const app = Vue.createApp({
                 });
                 this.maskPrefix = '';
                 this.maskPostfix = '';
-                this.clearAllAnnotations();
             }
             else {
                 alert("Filename must only contain lowercase letters and numbers without spaces. Please try again.");

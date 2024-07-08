@@ -23,22 +23,17 @@ predictor = Predictor()
 
 proj_dir = None
 
-def create_app():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--data-dir', type=str, help='end with data')
+def create_app(data_dir):
+    assert data_dir is not None, "Please provide data directory"
+    assert os.path.exists(data_dir), "Data directory does not exist"
+    assert os.path.basename(os.path.normpath(data_dir)) == 'data', "Data directory should end with 'data'"
 
-    assert parser.parse_args().data_dir is not None, "Please provide data directory"
-    assert os.path.exists(parser.parse_args().data_dir), "Data directory does not exist"
-    assert os.path.basename(os.path.normpath(parser.parse_args().data_dir)) == 'data', "Data directory should end with data"
-
-    args = parser.parse_args()
     global proj_dir
-    normalized_path = os.path.normpath(args.data_dir).replace(os.sep, '/')
+    normalized_path = os.path.normpath(data_dir).replace(os.sep, '/')
     data_index = normalized_path.find('/data')
     before_data = normalized_path[:data_index]
     app.config['DATA_DIR'] = before_data
     proj_dir = before_data
-
     return app
 
 @app.route('/')
@@ -220,5 +215,11 @@ def decode_data(data) -> np.ndarray:
 if __name__ == '__main__':
     from .utils import print_pretty_header
     print_pretty_header()
-    app = create_app()
-    app.run(debug=True, port=6500)
+    while True:
+        data_dir = input("Please enter your data dir path: ")
+        if os.path.exists(data_dir):
+            break
+        else:
+            print("Data directory does not exist. Please try again.")
+    app = create_app(data_dir)
+    app.run(debug=False, port=6500)

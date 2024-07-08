@@ -5,12 +5,14 @@ from .static.sam.predictor_for_app import Predictor
 
 def print_pretty_header():
     # Use a consistent width for the border
-    width = 68
+    print()
+    width = 74
     print("*" * width)
-    print("*" + "Use arg --data-dir to specify the data directory".center(width - 2) + "*")
-    print("*" + "data directory should end with 'data'".center(width - 2) + "*")
-    print("*" + "readme.md for more information".center(width - 2) + "*")
+    print("*" + "Please specify the data directory using an absolute path.".center(width - 2) + "*")
+    print("*" + "Ensure the directory structure meets the required specifications.".center(width - 2) + "*")
+    print("*" + "Refer to the readme.md for more detailed information.".center(width - 2) + "*")
     print("*" * width)
+    print()
 
 
 def process_images(images_dir, model_type):

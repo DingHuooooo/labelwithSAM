@@ -148,7 +148,7 @@ def selectMask():
     else:
         points = []
 
-    return jsonify({'message': 'Success set mask_path points_path'})
+    return jsonify({'message': 'Success set mask_path points_path', 'points': points.tolist()})
 
 @app.route('/getPoint', methods=['POST'])
 def add_point():

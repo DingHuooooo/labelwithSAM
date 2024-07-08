@@ -232,7 +232,7 @@ const app = Vue.createApp({
             const imagePath = `${this.imageBasePath}/${this.selectedDirectory}/${this.selectedFile}`;
             this.loadImage(imagePath)
             const maskPath = `${this.maskBasePath}/${this.selectedDirectory}/${this.selectedMask}`;
-            if (this.selectedMask != ''){
+            if (this.selectedMask != '') {
                 fetch('/selectMask', {
                     method: 'POST',
                     headers: {
@@ -240,12 +240,20 @@ const app = Vue.createApp({
                     },
                     body: JSON.stringify({ maskPath: maskPath })
                 })
-                .then(response => response.json())
-                .then(() => this.loadMask(maskPath))
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    this.loadMask(maskPath, data.points);
+                })
                 .catch(error => {
                     console.error('Failed to select mask:', error);
                 });
             }
+            
         },    
         generateEmbedding(imagePath) {
             fetch('/setImage', {
@@ -259,10 +267,9 @@ const app = Vue.createApp({
             .then(data => {
                 this.withEmbedding = true;
                 this.loadMaskOptions(data.mask_paths);
-            }
-            )
+            })
         },      
-        loadMask(maskPath) {
+        loadMask(maskPath, points) {
             const maskCanvas = document.getElementById('annotationMaskCanvas');
             const maskImg = new Image();
             
@@ -290,7 +297,13 @@ const app = Vue.createApp({
                 maskImg.src = maskPath + '?t=' + new Date().getTime(); // Adding timestamp to bypass cache
                 this.mask_history = [];
                 this.saveMaskToHistory();
-            }, 10); 
+                console.log(points);
+                if (points && points.length > 0) {
+                    points.forEach(point => {
+                        this.drawPoint(point.x, point.y, point.type);
+                    });
+                }
+            }, 5); 
 
             this.canAddPoints = false;
             this.canModify = true;
@@ -311,6 +324,22 @@ const app = Vue.createApp({
             markCanvas.addEventListener('click', this.pushPoint);
             markCanvas.addEventListener('contextmenu', this.stopAddingPoints);
         },
+        drawPoint(x, y, type) {
+            console.log('Drawing point:', x, y, type);
+        
+            const markCanvas = document.getElementById('annotationMarkCanvas');
+            const ctx = markCanvas.getContext('2d');
+        
+            const color = type === 'positive' ? 'red' : 'green';
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, 10, 0, 2 * Math.PI);
+            ctx.shadowBlur = 10;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+        },
+        
         pushPoint(event) {
             if (event.button !== 0) {return;}
             const markCanvas = document.getElementById('annotationMarkCanvas');

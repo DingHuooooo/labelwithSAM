@@ -230,7 +230,6 @@ const app = Vue.createApp({
         },
         handleMaskSelection() {
             const imagePath = `${this.imageBasePath}/${this.selectedDirectory}/${this.selectedFile}`;
-            this.loadImage(imagePath);
             const maskPath = `${this.maskBasePath}/${this.selectedDirectory}/${this.selectedMask}`;
             if (this.selectedMask != ''){
                 fetch('/selectMask', {
@@ -241,10 +240,11 @@ const app = Vue.createApp({
                     body: JSON.stringify({ maskPath: maskPath })
                 })
                 .then(response => response.json())
+                .then(() => this.loadImage(imagePath))
+                .then(() => this.loadMask(maskPath))
                 .catch(error => {
                     console.error('Failed to select mask:', error);
                 });
-                this.loadMask(maskPath)
             }
         },    
         generateEmbedding(imagePath) {
@@ -264,27 +264,34 @@ const app = Vue.createApp({
         },      
         loadMask(maskPath) {
             const maskCanvas = document.getElementById('annotationMaskCanvas');
-            const ctx = maskCanvas.getContext('2d', { willReadFrequently: true });
             const maskImg = new Image();
+            
             maskImg.onload = () => {
+                console.log('Mask image loaded successfully');
+                const ctx = maskCanvas.getContext('2d', { willReadFrequently: true });
                 ctx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
                 ctx.drawImage(maskImg, 0, 0, maskCanvas.width, maskCanvas.height);
                 const imageData = ctx.getImageData(0, 0, maskCanvas.width, maskCanvas.height);
                 const data = imageData.data;
-
+        
                 for (let i = 0; i < data.length; i += 4) {
-                    data[i] = data[i];     
-                    data[i + 1] = 0;       
-                    data[i + 2] = 0;       
+                    data[i] = data[i];   // Red channel (unchanged)
+                    data[i + 1] = 0;     // Green channel
+                    data[i + 2] = 0;     // Blue channel
                 }
                 ctx.putImageData(imageData, 0, 0);
-                setTimeout(() => {
-//                    alert('Existing Mask loaded!');  // Confirm mask is loaded after processing
-                    this.mask_history=[];
-                    this.saveMaskToHistory();
-                }, 5);
             };
-            maskImg.src = maskPath; 
+        
+            maskImg.onerror = () => {
+                console.error('Failed to load mask image');
+            };
+            
+            setTimeout(() => {
+                maskImg.src = maskPath + '?t=' + new Date().getTime(); // Adding timestamp to bypass cache
+                this.mask_history = [];
+                this.saveMaskToHistory();
+            }, 10); 
+
             this.canAddPoints = false;
             this.canModify = true;
         },

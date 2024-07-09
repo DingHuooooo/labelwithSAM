@@ -199,46 +199,56 @@ const app = Vue.createApp({
             }
         },
         loadImage(imagePath) {
-            const img = new Image();
-            img.onload = () => {
-                const width = img.width;
-                const height = img.height;
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => {
+                    const width = img.width;
+                    const height = img.height;
+            
+                    const container = document.getElementById('imageCanvasContainer');
+                    const baseCanvas = document.getElementById('baseImageCanvas');
+                    const maskCanvas = document.getElementById('annotationMaskCanvas');
+                    const markCanvas = document.getElementById('annotationMarkCanvas');
+            
+                    const controlPanel = document.getElementById('controlPanelContainer');
+                    controlPanel.style.marginLeft = `${width + 50}px`;
+            
+                    container.style.width = `${width}px`;
+                    container.style.height = `${height}px`;
+            
+                    [baseCanvas, maskCanvas, markCanvas].forEach(canvas => {
+                        canvas.width = width;
+                        canvas.height = height;
+                    });
+            
+                    const baseCtx = baseCanvas.getContext('2d');
+                    baseCtx.clearRect(0, 0, baseCanvas.width, baseCanvas.height);
+                    baseCtx.drawImage(img, 0, 0, width, height);
+            
+                    resolve();  // 成功完成后调用resolve
+                };
         
-                const container = document.getElementById('imageCanvasContainer');
-                const baseCanvas = document.getElementById('baseImageCanvas');
-                const maskCanvas = document.getElementById('annotationMaskCanvas');
-                const markCanvas = document.getElementById('annotationMarkCanvas');
+                img.onerror = () => {
+                    reject(new Error('Failed to load image at path: ' + imagePath));  // 图像加载失败时调用reject
+                };
         
-                const controlPanel = document.getElementById('controlPanelContainer');
-                controlPanel.style.marginLeft = `${width + 50}px`;
-        
-                container.style.width = `${width}px`;
-                container.style.height = `${height}px`;
-        
-                [baseCanvas, maskCanvas, markCanvas].forEach(canvas => {
-                    canvas.width = width;
-                    canvas.height = height;
-                });
-                
-                const baseCtx = baseCanvas.getContext('2d');
-                baseCtx.clearRect(0, 0, baseCanvas.width, baseCanvas.height);
-                baseCtx.drawImage(img, 0, 0, width, height);
-        
-            };
-            img.src = imagePath;
-            this.imageLoaded = true;
+                img.src = imagePath;
+                this.imageLoaded = true;
+            });
         },
         handleMaskSelection() {
             const imagePath = `${this.imageBasePath}/${this.selectedDirectory}/${this.selectedFile}`;
-            this.loadImage(imagePath)
             const maskPath = `${this.maskBasePath}/${this.selectedDirectory}/${this.selectedMask}`;
+        
             if (this.selectedMask != '') {
-                fetch('/selectMask', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ maskPath: maskPath })
+                this.loadImage(imagePath).then(() => {
+                    return fetch('/selectMask', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ maskPath: maskPath })
+                    });
                 })
                 .then(response => {
                     if (!response.ok) {
@@ -253,6 +263,9 @@ const app = Vue.createApp({
                     console.error('Failed to select mask:', error);
                 });
             }
+            else{
+                this.loadImage(imagePath)
+                };
             
         },    
         generateEmbedding(imagePath) {
@@ -272,7 +285,7 @@ const app = Vue.createApp({
         loadMask(maskPath, points) {
             const maskCanvas = document.getElementById('annotationMaskCanvas');
             const maskImg = new Image();
-            
+        
             maskImg.onload = () => {
                 console.log('Mask image loaded successfully');
                 const ctx = maskCanvas.getContext('2d', { willReadFrequently: true });
@@ -287,27 +300,29 @@ const app = Vue.createApp({
                     data[i + 2] = 0;     // Blue channel
                 }
                 ctx.putImageData(imageData, 0, 0);
-            };
         
-            maskImg.onerror = () => {
-                console.error('Failed to load mask image');
-            };
-            
-            setTimeout(() => {
-                maskImg.src = maskPath + '?t=' + new Date().getTime(); // Adding timestamp to bypass cache
+                // Clear the history after the image is loaded and drawn
                 this.mask_history = [];
-                this.saveMaskToHistory();
+                this.saveMaskToHistory();  // Now save the fresh state
+        
                 console.log(points);
                 if (points && points.length > 0) {
                     points.forEach(point => {
                         this.drawPoint(point.x, point.y, point.type);
                     });
                 }
-            }, 5); 
-
+            };
+        
+            maskImg.onerror = () => {
+                console.error('Failed to load mask image');
+            };
+        
+            // Set the source to initiate load
+            maskImg.src = maskPath + '?t=' + new Date().getTime(); // Adding timestamp to bypass cache
+        
             this.canAddPoints = false;
             this.canModify = true;
-        },
+        },        
         //*************************************************Maskcanvas Logic************************************************************//
         adjustOpacity(event) {
             this.opacity = event.target.value / 100;
@@ -765,6 +780,7 @@ const app = Vue.createApp({
             const maskCanvas = document.getElementById('annotationMaskCanvas');
             const imageDataURL = maskCanvas.toDataURL('image/png');
             this.mask_history.push(imageDataURL);
+            console.log('Mask history:', this.mask_history.length);
             // Check if the history exceeds the maximum buffer size of 10
             if (this.mask_history.length > 10) {
                 // Remove the oldest entry to maintain the buffer size of 10
@@ -773,6 +789,7 @@ const app = Vue.createApp({
             if (this.mask_history.length > 1) {this.canRetrieve = true;}
         },
         retrieveStep() {
+            console.log('Retrieving step:', this.mask_history.length);
             this.isBrushActive = false;
             this.isCrossHairActive = false;
             if (this.mask_history.length === 1) {
